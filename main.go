@@ -5,25 +5,13 @@ import (
 	"net/http"
 )
 
-// type Server struct {
-// 	Addr	string
-// 	Handler	handler
-// 	DisableGeneralOptionsHandler	bool
-// 	TLSConfig	*tls.Config
-// 	ReadTimeout	time.Duration
-// 	ReadHeaderTimeout	time.Duration
-// 	WriteTimeout	time.Duration
-// 	IdleTimeout	time.Duration
-// 	MaxHeaderBytes	int
-// 	TLSNextProto map[string]func(*Server, *tls.Conn, Handler)
-// 	ConnState func(net.Conn, ConnState)
-// 	ErrorLog	*log.logger
-// 	BaseContext	func(net.Listener) context.Context
-// 	ConnContext	func(ctx context.Context, c net.Conn) context.Context
-// 	HTTP2	*HTTP2Config
-// 	Protocols	*Protocols
-// }
+func	middlewareLog(next http.Handler) http.Handler {
 
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s", r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
 
 func	customHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -45,7 +33,7 @@ func main() {
 
 	stripped := http.StripPrefix("/app", fs)
 
-	mux.Handle("/app/", stripped)
+	mux.Handle("/app/", middlewareLog(stripped))
 
 	mux.HandleFunc("/healthz", customHandler)
 
