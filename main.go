@@ -25,7 +25,7 @@ func	(cfg *apiConfig) middlewareMatricsInc(next http.Handler) http.Handler {
 func	(cfg *apiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 
 		hits := cfg.fileserverHits.Load()
-		w.Header().Set("content-type", "text/plain; charset=ut8-8")
+		w.Header().Set("content-type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(fmt.Sprintf("Hits: %d", hits)))
 }
@@ -71,11 +71,11 @@ func main() {
 
 	mux.Handle("/app/", handler)
 
-	mux.HandleFunc("/healthz", customHandler)
+	mux.HandleFunc("GET /healthz/", customHandler)
 
-	mux.HandleFunc("/metrics/", cfg.MetricsHandler)
+	mux.HandleFunc("GET /metrics/", cfg.MetricsHandler)
 
-	mux.HandleFunc("/reset", cfg.ResetHandler)
+	mux.HandleFunc("POST /reset/", cfg.ResetHandler)
 
 	//creating the new server
 	server := &http.Server{
