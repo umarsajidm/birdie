@@ -77,6 +77,8 @@ func main() {
 
 	mux.HandleFunc("POST /reset/", cfg.ResetHandler)
 
+	mux.HandleFunc("POST /api/validate_chirp", validateChirpHandler)
+
 	//creating the new server
 	server := &http.Server{
 		Addr: ":80",
