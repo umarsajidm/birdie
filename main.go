@@ -1,15 +1,26 @@
 package main
 
 import (
+	"databse/sql"
+	"encoding/json"
+	"os"
+	"strings"
+	"sync/atomic"
 	"log"
 	"net/http"
 	"sync/atomic"
 	"fmt"
+	
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	
+	"github.com/umarsajidm/birdie/internal/database"
 )
 
 type apiConfig struct{
 
 	fileserverHits atomic.Int32
+	DB		*database.Queries
 }
 
 //middleware for statefull handler
@@ -59,7 +70,27 @@ func	customHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	cfg := &apiConfig{}
+	//load the .env file
+	err := godoenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	//grab the connection string
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL must be set")
+	}
+	//open the connection to postgres
+	db, err != sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal("Can't connect to database:", err)
+	}
+	//initialize your sqlc queries and add them to config
+	dbQueries := database.New(db)
+
+	cfg := &apiConfig{
+		DB: dbQueries,
+	}
 	
 	mux := http.NewServeMux() //creating a new mux
 	
