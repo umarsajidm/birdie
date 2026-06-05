@@ -1,4 +1,4 @@
-module birdie
+module github.com/umarsajidm/birdie
 
 go 1.22.2
 

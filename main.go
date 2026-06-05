@@ -1,30 +1,31 @@
 package main
 
 import (
-	"databse/sql"
-	"encoding/json"
+	"database/sql"
+	//"encoding/json"
 	"os"
-	"strings"
-	"sync/atomic"
+	//"strings"
 	"log"
 	"net/http"
 	"sync/atomic"
+
+	//"sync/atomic"
 	"fmt"
-	
+
+	//"github.com/joho/godotenv"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	
+
 	"github.com/umarsajidm/birdie/internal/database"
 )
 
-type apiConfig struct{
-
+type apiConfig struct {
 	fileserverHits atomic.Int32
-	DB		*database.Queries
+	DB             *database.Queries
 }
 
-//middleware for statefull handler
-func	(cfg *apiConfig) middlewareMatricsInc(next http.Handler) http.Handler {
+// middleware for statefull handler
+func (cfg *apiConfig) middlewareMatricsInc(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cfg.fileserverHits.Add(1)
@@ -32,24 +33,24 @@ func	(cfg *apiConfig) middlewareMatricsInc(next http.Handler) http.Handler {
 	})
 }
 
-//middleware Metrics
-func	(cfg *apiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
+// middleware Metrics
+func (cfg *apiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 
-		hits := cfg.fileserverHits.Load()
-		w.Header().Set("content-type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf("Hits: %d", hits)))
+	hits := cfg.fileserverHits.Load()
+	w.Header().Set("content-type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Hits: %d", hits)))
 }
 
-//middleware Reset
-func	(cfg *apiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
-	
-		cfg.fileserverHits.Store(0)
-		w.WriteHeader(http.StatusOK)
+// middleware Reset
+func (cfg *apiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
+
+	cfg.fileserverHits.Store(0)
+	w.WriteHeader(http.StatusOK)
 }
 
-//middleware log
-func	middlewareLog(next http.Handler) http.Handler {
+// middleware log
+func middlewareLog(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s", r.Method, r.URL.Path)
@@ -57,21 +58,20 @@ func	middlewareLog(next http.Handler) http.Handler {
 	})
 }
 
-func	customHandler(w http.ResponseWriter, r *http.Request) {
+func customHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8") //response header
-	
+
 	w.WriteHeader(http.StatusOK) //set status code
 
 	w.Write([]byte("OK"))
 
 }
 
-
 func main() {
 
 	//load the .env file
-	err := godoenv.Load()
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -81,7 +81,7 @@ func main() {
 		log.Fatal("DB_URL must be set")
 	}
 	//open the connection to postgres
-	db, err != sql.Open("postgres", dbURL)
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal("Can't connect to database:", err)
 	}
@@ -91,9 +91,9 @@ func main() {
 	cfg := &apiConfig{
 		DB: dbQueries,
 	}
-	
+
 	mux := http.NewServeMux() //creating a new mux
-	
+
 	fs := http.FileServer(http.Dir("."))
 
 	stripped := http.StripPrefix("/app", fs)
@@ -112,13 +112,13 @@ func main() {
 
 	//creating the new server
 	server := &http.Server{
-		Addr: ":80",
+		Addr:    ":80",
 		Handler: mux,
 	}
 
 	log.Println("starting the server on :80")
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 
 	if err != nil {
 		log.Fatal(err)
