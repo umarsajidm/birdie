@@ -25,3 +25,24 @@ Content-Type: application/json
 {
   "body": "This is a kerfuffle opinion I need to share with the world"
 }
+
+### Variables
+@baseUrl = http://localhost:8080
+
+---
+
+### Create a New User
+# Click "Send Request" below this line to test your sqlc insert
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+    "email": "birdie@example.com"
+}
+
+---
+
+### Reset the Database (Dev Only)
+# Click "Send Request" to test your sqlc delete and hits wipe
+POST {{baseUrl}}/admin/reset
+Content-Type: application/json
