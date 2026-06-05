@@ -1,48 +1,57 @@
-### Test 1: Valid Chirp (Should return 200 OK with valid: true)
-POST http://localhost:80/api/validate_chirp
-Content-Type: application/json
-
-{
-    "body": "Hello world! This is a valid chirp under 140 characters."
-}
-
-###
-
-### Test 2: Invalid Chirp (Should return 400 Bad Request with error)
-POST http://localhost:80/api/validate_chirp
-Content-Type: application/json
-
-{
-    "body": "This chirp is intentionally designed to be way too long. It will easily surpass the one hundred and forty character limit set by the strict rules of the Chirpy platform backend assignment."
-}
-
-###
-
-### Test 3: Bad JSON Input (Should return 400 Bad Request)
-POST http://localhost:80/api/validate_chirp
-Content-Type: application/json
-
-{
-  "body": "This is a kerfuffle opinion I need to share with the world"
-}
-
-### Variables
+### ==========================================
+### VARIABLES (Must be at the very top)
+### ==========================================
 @baseUrl = http://localhost:8080
+@userID = 3a9aaa94-91b0-455e-b294-e9e51ed4de20
 
----
+### ==========================================
+### USERS API
+### ==========================================
 
-### Create a New User
-# Click "Send Request" below this line to test your sqlc insert
+### Create a New User (Run this to get a fresh ID)
 POST {{baseUrl}}/api/users
 Content-Type: application/json
 
 {
-    "email": "birdie@example.com"
+    "email": "chirper@example.com"
 }
 
----
+### ==========================================
+### CHIRPS API
+### ==========================================
+
+### Create a Valid Chirp
+# NOTE: Replace the @userID variable at the top of this file first!
+POST {{baseUrl}}/api/chirps
+Content-Type: application/json
+
+{
+    "body": "This is my very first chirp!",
+    "user_id": "{{userID}}"
+}
+
+### Create an Invalid Chirp - Too Long (Should return 400)
+POST {{baseUrl}}/api/chirps
+Content-Type: application/json
+
+{
+    "body": "This chirp is way too long. It just keeps going and going and going and going and going and going and going and going and going and going and going and going and going.",
+    "user_id": "{{userID}}"
+}
+
+### Create a Chirp with Profanity (Should return 201 with ****)
+POST {{baseUrl}}/api/chirps
+Content-Type: application/json
+
+{
+    "body": "What a kerfuffle this sharbert is!",
+    "user_id": "{{userID}}"
+}
+
+### ==========================================
+### ADMIN API
+### ==========================================
 
 ### Reset the Database (Dev Only)
-# Click "Send Request" to test your sqlc delete and hits wipe
 POST {{baseUrl}}/admin/reset
 Content-Type: application/json

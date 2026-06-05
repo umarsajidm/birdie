@@ -5,7 +5,20 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/umarsajidm/birdie/internal/database"
 )
+
+type Chirp struct {
+	ID	uuid.UUID `json:"id"`
+	CreatedAt time.Time	`json:"created_at"`
+	UpdatedAt	time.Time	`json:"updated_at"`
+	Body	string	`json:"body"`
+	UserID	uuid.UUID `json:"user_id"`
+}
 
 func	getCleanedBody(body string) string {
 	words := strings.Split(body, " ")
@@ -46,10 +59,11 @@ func respondWithERROR(w http.ResponseWriter, code int, s string) {
 	respondWithValid(w, code, errorResponse{Error: s})
 }
 
-func	validateChirpHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig)	handleChirpsCreate(w http.ResponseWriter, r *http.Request) {
 
 	type parameters struct {
 		Body string `json:"body"`
+		UserID uuid.UUID `json:"user_id"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -69,10 +83,24 @@ func	validateChirpHandler(w http.ResponseWriter, r *http.Request) {
 
 	cleaned := getCleanedBody(params.Body)
 
-	type validResponse struct {
-		CleanBody string `json:"cleanBody"`
-	}
+	//saving database using sqlc generate code
+	chirp, err := cfg.DB.CreateChirps(r.Context(), database.CreateChirpsParams{
+		Body: cleaned,
+		UserID: params.UserID,
+	})
 
-	respondWithValid(w, http.StatusOK, validResponse{CleanBody: cleaned})
+	if err != nil {
+		respondWithERROR(w, http.StatusInternalServerError, "cant create chirp")
+		return
+	}
+	
+	//returning the response with 201
+	respondWithValid(w, http.StatusOK, Chirp {
+		ID:	chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body: chirp.Body,
+		UserID: chirp.UserID,
+	})
 
 }
