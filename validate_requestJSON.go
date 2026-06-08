@@ -13,27 +13,27 @@ import (
 )
 
 type Chirp struct {
-	ID	uuid.UUID `json:"id"`
-	CreatedAt time.Time	`json:"created_at"`
-	UpdatedAt	time.Time	`json:"updated_at"`
-	Body	string	`json:"body"`
-	UserID	uuid.UUID `json:"user_id"`
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Body      string    `json:"body"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
-func	getCleanedBody(body string) string {
+func getCleanedBody(body string) string {
 	words := strings.Split(body, " ")
-	
+
 	badWords := map[string]bool{
 		"kerfuffle": true,
-		"sharbert": true,
-		"fornax": true,
+		"sharbert":  true,
+		"fornax":    true,
 	}
 
 	for i, word := range words {
 		lowercase := strings.ToLower(word)
 		uppercase := strings.ToUpper(word)
 		if badWords[lowercase] || badWords[uppercase] {
-			
+
 			words[i] = "****"
 		}
 	}
@@ -59,15 +59,15 @@ func respondWithERROR(w http.ResponseWriter, code int, s string) {
 	respondWithValid(w, code, errorResponse{Error: s})
 }
 
-func (cfg *apiConfig)	handleChirpsCreate(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request) {
 
 	type parameters struct {
-		Body string `json:"body"`
+		Body   string    `json:"body"`
 		UserID uuid.UUID `json:"user_id"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	
+
 	params := parameters{}
 
 	err := decoder.Decode(&params)
@@ -78,14 +78,14 @@ func (cfg *apiConfig)	handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 
 	if len(params.Body) > 140 {
 		respondWithERROR(w, http.StatusBadRequest, "chirp is too long")
-		return 
+		return
 	}
 
 	cleaned := getCleanedBody(params.Body)
 
 	//saving database using sqlc generate code
 	chirp, err := cfg.DB.CreateChirps(r.Context(), database.CreateChirpsParams{
-		Body: cleaned,
+		Body:   cleaned,
 		UserID: params.UserID,
 	})
 
@@ -93,14 +93,14 @@ func (cfg *apiConfig)	handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 		respondWithERROR(w, http.StatusInternalServerError, "cant create chirp")
 		return
 	}
-	
+
 	//returning the response with 201
-	respondWithValid(w, http.StatusOK, Chirp {
-		ID:	chirp.ID,
+	respondWithValid(w, http.StatusOK, Chirp{
+		ID:        chirp.ID,
 		CreatedAt: chirp.CreatedAt,
 		UpdatedAt: chirp.UpdatedAt,
-		Body: chirp.Body,
-		UserID: chirp.UserID,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID,
 	})
 
 }

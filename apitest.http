@@ -55,3 +55,9 @@ Content-Type: application/json
 ### Reset the Database (Dev Only)
 POST {{baseUrl}}/admin/reset
 Content-Type: application/json
+
+
+### ==========================================
+### Get All Chirps (Should return an array)
+### ==========================================
+GET {{baseUrl}}/api/chirps
