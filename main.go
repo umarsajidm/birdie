@@ -99,6 +99,8 @@ func main() {
 	
 	mux.HandleFunc("GET /api/chirps", cfg.ChirpsAscHandler)
 
+	mux.HandleFunc("GET /api/chirps/{chirpID}", cfg.ChirpByIDHandler)
+
 	mux.HandleFunc("POST /admin/reset", cfg.ResetHandler)
 
 	mux.HandleFunc("POST /api/chirps", cfg.handleChirpsCreate)

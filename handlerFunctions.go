@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 // GET ChirpsAscHandler
@@ -38,6 +40,32 @@ func (cfg *apiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Hits: %d", hits)))
+}
+
+// GET ChirpByIDHandler
+func (cfg *apiConfig) ChirpByIDHandler(w http.ResponseWriter, r *http.Request) {
+
+	idString := r.PathValue("ChirpID")
+
+	id, err := uuid.Parse(idString)
+	if err != nil {
+		respondWithERROR(w, http.StatusNotFound, "invalid chirp ID")
+		return
+	}
+
+	chirpDB, err := cfg.DB.GetChirp(r.Context(), id)
+	if err != nil {
+		respondWithERROR(w, http.StatusNotFound, "cant get chirp")
+		return
+	}
+
+	respondWithValid(w, http.StatusOK, Chirp{
+		ID:        chirpDB.ID,
+		CreatedAt: chirpDB.CreatedAt,
+		UpdatedAt: chirpDB.UpdatedAt,
+		Body:      chirpDB.Body,
+		UserID:    chirpDB.UserID,
+	})
 }
 
 // ResetHandler
