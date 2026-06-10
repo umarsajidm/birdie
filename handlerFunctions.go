@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/umarsajidm/birdie/internal/auth"
+	"github.com/umarsajidm/birdie/internal/database"
 )
 
 // GET ChirpsAscHandler
@@ -91,10 +93,11 @@ func (cfg *apiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleUsersCreate
+// POST handleUsersCreateHandler
 func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Email string `json:"email"`
+		Password string	`json:"password"`
 	}
 	//decoding the incoming json body/ request
 	decoder := json.NewDecoder(r.Body)
@@ -104,9 +107,19 @@ func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) 
 		respondWithERROR(w, http.StatusBadRequest, "couldn't decode the params for creating users")
 		return
 	}
+
+	HashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		respondWithERROR(w, http.StatusInternalServerError, "couldn't hash the password")
+	}
+
 	//executing the sqlc query
 	//passing the r.Context() to handle the request timeouts natively
-	user, err := cfg.DB.CreateUser(r.Context(), params.Email)
+	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
+		Email:          params.Email,
+		HashedPassword: HashedPassword,
+	})
+
 	if err != nil {
 		respondWithERROR(w, http.StatusBadRequest, "couldnt create user")
 		return
@@ -118,4 +131,21 @@ func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) 
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
 	})
+}
+
+//POST LoginHandler
+func (cfg *apiConfig) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Email string `json:"email"`
+		Password string `json:"password"`
+	}
+	
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithERROR(w, http.StatusBadRequest, "cant decode save into params")
+	}
+
+	match, err := 
 }
